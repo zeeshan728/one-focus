@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Focus — one task, nothing else</title>
+<style>
+:root{--bg:#0e0f12;--card:#16181d;--ink:#ecebe6;--mute:#8a8d96;--acc:#e8c47a;--ok:#7fd1a8}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(1200px 600px at 50% -10%,#1d1f26,var(--bg));color:var(--ink);font:16px/1.5 -apple-system,Inter,Segoe UI,sans-serif;display:flex;align-items:center;justify-content:center}
+.w{width:min(560px,92vw);text-align:center}h1{font-weight:300;letter-spacing:.2em;font-size:13px;color:var(--mute);text-transform:uppercase}
+.streak{color:var(--acc);font-size:14px;margin:-6px 0 28px}.dots{display:flex;gap:6px;justify-content:center;margin-top:8px}.dots i{width:8px;height:8px;border-radius:50%;background:#2a2d35}.dots i.on{background:var(--acc)}
+input,textarea{width:100%;background:var(--card);border:1px solid #262932;color:var(--ink);border-radius:14px;padding:18px;font-size:20px;text-align:center;outline:none}input:focus{border-color:var(--acc)}
+.durs{display:flex;gap:8px;justify-content:center;margin:18px 0}.durs button{background:transparent;border:1px solid #2a2d35;color:var(--mute);padding:8px 16px;border-radius:99px;cursor:pointer}.durs button.on{color:var(--ink);border-color:var(--acc)}
+.go{background:var(--acc);color:#111;border:0;padding:14px 38px;border-radius:99px;font-size:16px;font-weight:600;cursor:pointer}.go:disabled{opacity:.3}
+.task{font-size:26px;font-weight:500;margin:10px 0 30px}.ring{position:relative;width:280px;height:280px;margin:0 auto}.ring svg{transform:rotate(-90deg)}.t{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:56px;font-weight:200;font-variant-numeric:tabular-nums}
+.cap{margin-top:30px}.cap input{font-size:15px;padding:12px;text-align:left}.hint{color:var(--mute);font-size:12px;margin-top:8px}
+.link{background:none;border:0;color:var(--mute);margin-top:22px;cursor:pointer;font-size:13px}
+.hide{display:none}.modal{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center}.box{background:var(--card);padding:28px;border-radius:18px;width:min(440px,90vw)}
+.list{text-align:left;color:var(--mute);font-size:14px;margin:16px 0}.big{font-size:64px}
+</style></head><body><div class="w">
+<h1>One Focus</h1><div class="streak" id="sk"></div>
+<section id="setup"><input id="task" maxlength="80" placeholder="What is the one thing?" autofocus>
+<div class="durs" id="durs"><button data-m="25" class="on">25 min</button><button data-m="50">50 min</button><button data-m="90">90 min</button></div>
+<button class="go" id="start" disabled>Lock in</button><div class="hint">Once you start, this is the only task. No switching.</div></section>
+<section id="run" class="hide"><div class="hint">LOCKED IN</div><div class="task" id="tname"></div>
+<div class="ring"><svg width="280" height="280"><circle cx="140" cy="140" r="130" stroke="#22252c" stroke-width="4" fill="none"/><circle id="arc" cx="140" cy="140" r="130" stroke="var(--acc)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="816.8"/></svg><div class="t" id="time"></div></div>
+<div class="cap"><input id="cap" placeholder="Distracted? Park it here and keep going ⏎"><div class="hint" id="capn">Press / anywhere to park a thought</div></div>
+<button class="link" id="quit">Abandon session</button></section>
+</div>
+<div class="modal hide" id="m1"><div class="box"><h3>Break the lock?</h3><p class="hint">Type <b>I give up on this</b> to abandon. Your streak only grows from finished sessions.</p><input id="conf"><br><br><button class="go" id="back">Keep going</button> <button class="link" id="really">Abandon</button></div></div>
+<div class="modal hide" id="m2"><div class="box"><div class="big">✦</div><h3 id="dtitle">Done.</h3><div id="dstreak" class="streak"></div><div class="list" id="parked"></div><button class="go" id="again">Next one thing</button></div></div>
+<script>
+const $=id=>document.getElementById(id),S=JSON.parse(localStorage.of||'{"days":{},"best":0}');let mins=25,end=0,tk,parked=[];
+const day=d=>d.toISOString().slice(0,10),save=()=>localStorage.of=JSON.stringify(S);
+function streak(){let n=0,d=new Date();if(!S.days[day(d)])d.setDate(d.getDate()-1);while(S.days[day(d)]){n++;d.setDate(d.getDate()-1)}return n}
+function draw(){const n=streak(),today=S.days[day(new Date())]||0;let h=n?`🔥 ${n}-day streak`+(today?` · ${today} today`:` · finish one today to keep it`):'Finish one session to start a streak';h+='<div class="dots">';for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);h+=`<i class="${S.days[day(d)]?'on':''}"></i>`}$('sk').innerHTML=h+'</div>'}
+$('task').oninput=e=>$('start').disabled=!e.target.value.trim();$('task').onkeydown=e=>e.key=='Enter'&&!$('start').disabled&&$('start').click();
+$('durs').onclick=e=>{if(!e.target.dataset.m)return;mins=+e.target.dataset.m;[...$('durs').children].forEach(b=>b.classList.toggle('on',b==e.target))};
+$('start').onclick=()=>{end=Date.now()+mins*6e4;parked=[];localStorage.ofRun=JSON.stringify({t:$('task').value,end,mins});go()};
+function go(){const r=JSON.parse(localStorage.ofRun);$('tname').textContent=r.t;document.title='🔒 '+r.t;$('setup').classList.add('hide');$('run').classList.remove('hide');end=r.end;mins=r.mins;tick();tk=setInterval(tick,250)}
+function tick(){const l=Math.max(0,end-Date.now()),s=Math.ceil(l/1e3);$('time').textContent=`${s/60|0}:${String(s%60).padStart(2,'0')}`;$('arc').style.strokeDashoffset=816.8*(1-l/(mins*6e4));if(!l)done()}
+function stop(){clearInterval(tk);delete localStorage.ofRun;document.title='One Focus';$('run').classList.add('hide');$('setup').classList.remove('hide');$('task').value='';$('start').disabled=true}
+function done(){const t=$('tname').textContent;stop();const k=day(new Date());S.days[k]=(S.days[k]||0)+1;S.best=Math.max(S.best,streak());save();draw();
+$('dtitle').textContent=`“${t}” — done.`;$('dstreak').textContent=`🔥 ${streak()}-day streak · best ${S.best}`;$('parked').innerHTML=parked.length?'<b>Parked while you focused:</b><br>'+parked.map(p=>'· '+p.replace(/</g,'&lt;')).join('<br>'):'Zero distractions. Clean session.';$('m2').classList.remove('hide');try{new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=').play()}catch(e){}}
+$('cap').onkeydown=e=>{if(e.key=='Enter'&&e.target.value.trim()){parked.push(e.target.value.trim());e.target.value='';$('capn').textContent=`${parked.length} parked · back to work`;e.target.blur()}};
+document.onkeydown=e=>{if(e.key=='/'&&!$('run').classList.contains('hide')&&document.activeElement!=$('cap')){e.preventDefault();$('cap').focus()}};
+$('quit').onclick=()=>{$('conf').value='';$('m1').classList.remove('hide');$('conf').focus()};$('back').onclick=()=>$('m1').classList.add('hide');
+$('really').onclick=()=>{if($('conf').value.trim().toLowerCase()=='i give up on this'){$('m1').classList.add('hide');stop()}else $('conf').style.borderColor='#d66'};
+$('again').onclick=()=>{$('m2').classList.add('hide');$('task').focus()};
+window.onbeforeunload=e=>{if(localStorage.ofRun){e.preventDefault();return''}};
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&localStorage.ofRun)document.title='⚠ Come back: '+$('tname').textContent;else if(localStorage.ofRun)document.title='🔒 '+$('tname').textContent});
+draw();if(localStorage.ofRun)go();
+</script></body></html>
