@@ -160,6 +160,7 @@ input::placeholder{color:#5c606a}
     <h3 id="m1title">Break the lock?</h3>
     <p class="hint">Type <b>I give up on this</b> to abandon. Your streak only grows from finished sessions.</p>
     <input id="conf" autocomplete="off" aria-label="Confirm abandon phrase">
+    <p class="hint" id="aberr" hidden style="color:#e88;margin-top:10px">That doesn’t match. Type the exact phrase, or keep going.</p>
     <div class="done-actions" style="margin-top:18px">
       <button type="button" class="go" id="back">Keep going</button>
       <button type="button" class="link" id="really">Abandon</button>
@@ -520,6 +521,7 @@ input::placeholder{color:#5c606a}
   $('quit').addEventListener('click', function(){
     $('conf').value = '';
     $('conf').style.borderColor = '';
+    if($('aberr')) $('aberr').hidden = true;
     $('m1').classList.remove('hide');
     $('conf').focus();
   });
@@ -537,6 +539,7 @@ input::placeholder{color:#5c606a}
       $('task').focus();
     } else {
       $('conf').style.borderColor = 'var(--danger)';
+      if($('aberr')) $('aberr').hidden = false;
     }
   });
 
