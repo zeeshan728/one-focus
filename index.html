@@ -1,48 +1,597 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Focus — one task, nothing else</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e0f12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="One Focus">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="One task. Nothing else. An ADHD-friendly focus lock.">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22One%20Focus%22%2C%22short_name%22%3A%22One%20Focus%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230e0f12%22%2C%22theme_color%22%3A%22%230e0f12%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D'http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg'%2520viewBox%253D'0%25200%2520100%2520100'%253E%253Crect%2520width%253D'100'%2520height%253D'100'%2520rx%253D'22'%2520fill%253D'%230e0f12'%252F%253E%253Ccircle%2520cx%253D'50'%2520cy%253D'50'%2520r%253D'28'%2520fill%253D'none'%2520stroke%253D'%23e8c47a'%2520stroke-width%253D'6'%252F%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%22%7D%5D%7D">
+<title>One Focus — one task, nothing else</title>
 <style>
-:root{--bg:#0e0f12;--card:#16181d;--ink:#ecebe6;--mute:#8a8d96;--acc:#e8c47a;--ok:#7fd1a8}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(1200px 600px at 50% -10%,#1d1f26,var(--bg));color:var(--ink);font:16px/1.5 -apple-system,Inter,Segoe UI,sans-serif;display:flex;align-items:center;justify-content:center}
-.w{width:min(560px,92vw);text-align:center}h1{font-weight:300;letter-spacing:.2em;font-size:13px;color:var(--mute);text-transform:uppercase}
-.streak{color:var(--acc);font-size:14px;margin:-6px 0 28px}.dots{display:flex;gap:6px;justify-content:center;margin-top:8px}.dots i{width:8px;height:8px;border-radius:50%;background:#2a2d35}.dots i.on{background:var(--acc)}
-input,textarea{width:100%;background:var(--card);border:1px solid #262932;color:var(--ink);border-radius:14px;padding:18px;font-size:20px;text-align:center;outline:none}input:focus{border-color:var(--acc)}
-.durs{display:flex;gap:8px;justify-content:center;margin:18px 0}.durs button{background:transparent;border:1px solid #2a2d35;color:var(--mute);padding:8px 16px;border-radius:99px;cursor:pointer}.durs button.on{color:var(--ink);border-color:var(--acc)}
-.go{background:var(--acc);color:#111;border:0;padding:14px 38px;border-radius:99px;font-size:16px;font-weight:600;cursor:pointer}.go:disabled{opacity:.3}
-.task{font-size:26px;font-weight:500;margin:10px 0 30px}.ring{position:relative;width:280px;height:280px;margin:0 auto}.ring svg{transform:rotate(-90deg)}.t{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:56px;font-weight:200;font-variant-numeric:tabular-nums}
-.cap{margin-top:30px}.cap input{font-size:15px;padding:12px;text-align:left}.hint{color:var(--mute);font-size:12px;margin-top:8px}
-.link{background:none;border:0;color:var(--mute);margin-top:22px;cursor:pointer;font-size:13px}
-.hide{display:none}.modal{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center}.modal.hide{display:none}.box{background:var(--card);padding:28px;border-radius:18px;width:min(440px,90vw)}
-.list{text-align:left;color:var(--mute);font-size:14px;margin:16px 0}.big{font-size:64px}
-</style></head><body><div class="w">
-<h1>One Focus</h1><div class="streak" id="sk"></div>
-<section id="setup"><input id="task" maxlength="80" placeholder="What is the one thing?" autofocus>
-<div class="durs" id="durs"><button data-m="25" class="on">25 min</button><button data-m="50">50 min</button><button data-m="90">90 min</button></div>
-<button class="go" id="start" disabled>Lock in</button><div class="hint">Once you start, this is the only task. No switching.</div></section>
-<section id="run" class="hide"><div class="hint">LOCKED IN</div><div class="task" id="tname"></div>
-<div class="ring"><svg width="280" height="280"><circle cx="140" cy="140" r="130" stroke="#22252c" stroke-width="4" fill="none"/><circle id="arc" cx="140" cy="140" r="130" stroke="var(--acc)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="816.8"/></svg><div class="t" id="time"></div></div>
-<div class="cap"><input id="cap" placeholder="Distracted? Park it here and keep going ⏎"><div class="hint" id="capn">Press / anywhere to park a thought</div></div>
-<button class="link" id="quit">Abandon session</button></section>
+:root{
+  --bg:#0e0f12;--card:#16181d;--ink:#ecebe6;--mute:#8a8d96;
+  --acc:#e8c47a;--ok:#7fd1a8;--danger:#d66;--ring:#22252c;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;min-height:100vh;min-height:100dvh;
+  background:radial-gradient(1200px 600px at 50% -10%,#1d1f26,var(--bg));
+  color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,Inter,Segoe UI,sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px 16px;padding-bottom:max(24px,env(safe-area-inset-bottom));
+}
+.w{width:min(560px,100%);text-align:center}
+h1{font-weight:300;letter-spacing:.2em;font-size:13px;color:var(--mute);text-transform:uppercase;margin:0 0 10px}
+.streak{color:var(--acc);font-size:14px;margin:0 0 8px;min-height:1.4em}
+.coach{color:var(--mute);font-size:13px;margin:0 0 22px;min-height:1.3em}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.dots i{width:8px;height:8px;border-radius:50%;background:#2a2d35;display:inline-block}
+.dots i.on{background:var(--acc)}
+
+input,textarea{
+  width:100%;background:var(--card);border:1px solid #262932;color:var(--ink);
+  border-radius:14px;padding:18px;font-size:18px;text-align:center;outline:none;
+  -webkit-appearance:none;appearance:none;
+}
+input:focus{border-color:var(--acc)}
+input::placeholder{color:#5c606a}
+
+.durs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:18px 0}
+.durs button{
+  background:transparent;border:1px solid #2a2d35;color:var(--mute);
+  padding:12px 18px;min-height:44px;min-width:64px;border-radius:99px;cursor:pointer;
+  font-size:15px;
+}
+.durs button.on{color:var(--ink);border-color:var(--acc)}
+
+.go{
+  background:var(--acc);color:#111;border:0;padding:16px 40px;min-height:52px;
+  border-radius:99px;font-size:16px;font-weight:600;cursor:pointer;margin-top:4px;
+}
+.go:disabled{opacity:.35;cursor:not-allowed}
+.go.secondary{background:transparent;color:var(--ink);border:1px solid #2a2d35;margin-top:12px}
+
+.ambient-row{margin-top:18px}
+.ambient{
+  background:transparent;border:1px solid #2a2d35;color:var(--mute);
+  padding:10px 16px;min-height:44px;border-radius:99px;cursor:pointer;font-size:13px;
+}
+.ambient.on{color:var(--acc);border-color:var(--acc)}
+
+.task{font-size:clamp(20px,5vw,26px);font-weight:500;margin:10px 0 28px;word-break:break-word}
+.ring{position:relative;width:min(280px,72vw);height:min(280px,72vw);margin:0 auto}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
+.ring svg .pulse{transform-origin:140px 140px}
+.t{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(42px,12vw,56px);font-weight:200;font-variant-numeric:tabular-nums;
+}
+@keyframes softPulse{
+  0%,100%{opacity:.35;transform:scale(1)}
+  50%{opacity:.7;transform:scale(1.015)}
+}
+.ring.running .pulse{
+  animation:softPulse 3.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion:reduce){
+  .ring.running .pulse{animation:none}
+  *{scroll-behavior:auto}
+}
+
+.cap{margin-top:28px}
+.cap input{font-size:15px;padding:14px 16px;text-align:left;min-height:48px}
+.hint{color:var(--mute);font-size:12px;margin-top:8px}
+.link{
+  background:none;border:0;color:var(--mute);margin-top:22px;cursor:pointer;
+  font-size:13px;min-height:44px;padding:10px 12px;
+}
+.hide{display:none !important}
+.modal{
+  position:fixed;inset:0;background:#000c;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;z-index:20;
+}
+.modal.hide{display:none !important}
+.box{
+  background:var(--card);padding:28px 22px;border-radius:18px;
+  width:min(440px,100%);max-height:90vh;overflow:auto;text-align:center;
+}
+.box h3{margin:8px 0 12px;font-weight:500;font-size:20px;word-break:break-word}
+.list{text-align:left;color:var(--mute);font-size:14px;margin:16px 0;line-height:1.55}
+.list b{color:var(--ink);font-weight:500}
+.big{font-size:56px;line-height:1;margin-bottom:4px}
+.done-actions{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:8px}
+.break-note{color:var(--mute);font-size:13px;margin-top:10px}
+@media (max-width:390px){
+  body{padding:16px 12px}
+  .durs button{padding:12px 14px;font-size:14px}
+  input{font-size:16px;padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="w">
+  <h1>One Focus</h1>
+  <div class="streak" id="sk"></div>
+  <div class="coach" id="coach"></div>
+
+  <section id="setup">
+    <input id="task" maxlength="80" placeholder="What is the one thing?" autocomplete="off" autofocus>
+    <div class="durs" id="durs" role="group" aria-label="Duration">
+      <button type="button" data-m="5">5 min</button>
+      <button type="button" data-m="15">15 min</button>
+      <button type="button" data-m="25" class="on">25 min</button>
+      <button type="button" data-m="50">50 min</button>
+    </div>
+    <button class="go" id="start" disabled>Lock in</button>
+    <div class="hint">Once you start, this is the only task. No switching.</div>
+  </section>
+
+  <section id="run" class="hide" aria-live="polite">
+    <div class="hint">LOCKED IN</div>
+    <div class="task" id="tname"></div>
+    <div class="ring" id="ring">
+      <svg viewBox="0 0 280 280" aria-hidden="true">
+        <circle cx="140" cy="140" r="130" stroke="var(--ring)" stroke-width="4" fill="none"/>
+        <circle class="pulse" cx="140" cy="140" r="130" stroke="var(--acc)" stroke-width="10" fill="none" opacity="0.25"/>
+        <circle id="arc" cx="140" cy="140" r="130" stroke="var(--acc)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="816.814" stroke-dashoffset="0"/>
+      </svg>
+      <div class="t" id="time">0:00</div>
+    </div>
+    <div class="cap">
+      <input id="cap" placeholder="Distracted? Park it here and keep going ⏎" autocomplete="off">
+      <div class="hint" id="capn">Press / anywhere to park a thought</div>
+    </div>
+    <div class="ambient-row">
+      <button type="button" class="ambient" id="ambient" aria-pressed="false">Stay with me</button>
+    </div>
+    <button type="button" class="link" id="quit">Abandon session</button>
+  </section>
 </div>
-<div class="modal hide" id="m1"><div class="box"><h3>Break the lock?</h3><p class="hint">Type <b>I give up on this</b> to abandon. Your streak only grows from finished sessions.</p><input id="conf"><br><br><button class="go" id="back">Keep going</button> <button class="link" id="really">Abandon</button></div></div>
-<div class="modal hide" id="m2"><div class="box"><div class="big">✦</div><h3 id="dtitle">Done.</h3><div id="dstreak" class="streak"></div><div class="list" id="parked"></div><button class="go" id="again">Next one thing</button></div></div>
+
+<div class="modal hide" id="m1" role="dialog" aria-labelledby="m1title">
+  <div class="box">
+    <h3 id="m1title">Break the lock?</h3>
+    <p class="hint">Type <b>I give up on this</b> to abandon. Your streak only grows from finished sessions.</p>
+    <input id="conf" autocomplete="off" aria-label="Confirm abandon phrase">
+    <div class="done-actions" style="margin-top:18px">
+      <button type="button" class="go" id="back">Keep going</button>
+      <button type="button" class="link" id="really">Abandon</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hide" id="m2" role="dialog" aria-labelledby="dtitle">
+  <div class="box">
+    <div class="big" aria-hidden="true">✦</div>
+    <h3 id="dtitle">Done.</h3>
+    <div id="dstreak" class="streak"></div>
+    <div id="ddots" class="dots" aria-hidden="true"></div>
+    <div class="list" id="parked"></div>
+    <div class="done-actions">
+      <button type="button" class="go" id="again">Next one thing</button>
+      <button type="button" class="go secondary" id="breakbtn">5-min break</button>
+      <div class="break-note hide" id="breaknote"></div>
+    </div>
+  </div>
+</div>
+
 <script>
-const $=id=>document.getElementById(id),S=JSON.parse(localStorage.of||'{"days":{},"best":0}');let mins=25,end=0,tk,parked=[];
-const day=d=>d.toISOString().slice(0,10),save=()=>localStorage.of=JSON.stringify(S);
-function streak(){let n=0,d=new Date();if(!S.days[day(d)])d.setDate(d.getDate()-1);while(S.days[day(d)]){n++;d.setDate(d.getDate()-1)}return n}
-function draw(){const n=streak(),today=S.days[day(new Date())]||0;let h=n?`🔥 ${n}-day streak`+(today?` · ${today} today`:` · finish one today to keep it`):'Finish one session to start a streak';h+='<div class="dots">';for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);h+=`<i class="${S.days[day(d)]?'on':''}"></i>`}$('sk').innerHTML=h+'</div>'}
-$('task').oninput=e=>$('start').disabled=!e.target.value.trim();$('task').onkeydown=e=>e.key=='Enter'&&!$('start').disabled&&$('start').click();
-$('durs').onclick=e=>{if(!e.target.dataset.m)return;mins=+e.target.dataset.m;[...$('durs').children].forEach(b=>b.classList.toggle('on',b==e.target))};
-$('start').onclick=()=>{end=Date.now()+mins*6e4;parked=[];localStorage.ofRun=JSON.stringify({t:$('task').value,end,mins});go()};
-function go(){const r=JSON.parse(localStorage.ofRun);$('tname').textContent=r.t;document.title='🔒 '+r.t;$('setup').classList.add('hide');$('run').classList.remove('hide');end=r.end;mins=r.mins;tick();tk=setInterval(tick,250)}
-function tick(){const l=Math.max(0,end-Date.now()),s=Math.ceil(l/1e3);$('time').textContent=`${s/60|0}:${String(s%60).padStart(2,'0')}`;$('arc').style.strokeDashoffset=816.8*(1-l/(mins*6e4));if(!l)done()}
-function stop(){clearInterval(tk);delete localStorage.ofRun;document.title='One Focus';$('run').classList.add('hide');$('setup').classList.remove('hide');$('task').value='';$('start').disabled=true}
-function done(){const t=$('tname').textContent;stop();const k=day(new Date());S.days[k]=(S.days[k]||0)+1;S.best=Math.max(S.best,streak());save();draw();
-$('dtitle').textContent=`“${t}” — done.`;$('dstreak').textContent=`🔥 ${streak()}-day streak · best ${S.best}`;$('parked').innerHTML=parked.length?'<b>Parked while you focused:</b><br>'+parked.map(p=>'· '+p.replace(/</g,'&lt;')).join('<br>'):'Zero distractions. Clean session.';$('m2').classList.remove('hide');try{new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=').play()}catch(e){}}
-$('cap').onkeydown=e=>{if(e.key=='Enter'&&e.target.value.trim()){parked.push(e.target.value.trim());e.target.value='';$('capn').textContent=`${parked.length} parked · back to work`;e.target.blur()}};
-document.onkeydown=e=>{if(e.key=='/'&&!$('run').classList.contains('hide')&&document.activeElement!=$('cap')){e.preventDefault();$('cap').focus()}};
-$('quit').onclick=()=>{$('conf').value='';$('m1').classList.remove('hide');$('conf').focus()};$('back').onclick=()=>$('m1').classList.add('hide');
-$('really').onclick=()=>{if($('conf').value.trim().toLowerCase()=='i give up on this'){$('m1').classList.add('hide');stop()}else $('conf').style.borderColor='#d66'};
-$('again').onclick=()=>{$('m2').classList.add('hide');$('task').focus()};
-window.onbeforeunload=e=>{if(localStorage.ofRun){e.preventDefault();return''}};
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&localStorage.ofRun)document.title='⚠ Come back: '+$('tname').textContent;else if(localStorage.ofRun)document.title='🔒 '+$('tname').textContent});
-draw();if(localStorage.ofRun)go();
-</script></body></html>
+(function(){
+  const $ = id => document.getElementById(id);
+  const CIRC = 2 * Math.PI * 130; // 816.814...
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Local-timezone YYYY-MM-DD (Asia/Karachi / any local zone — never UTC)
+  function dayKey(d){
+    const x = d instanceof Date ? d : new Date(d);
+    const y = x.getFullYear();
+    const m = String(x.getMonth() + 1).padStart(2, '0');
+    const dd = String(x.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + dd;
+  }
+
+  function loadStats(){
+    try{
+      const raw = localStorage.getItem('of');
+      if(!raw) return {days:{}, best:0};
+      const s = JSON.parse(raw);
+      return {days: s.days || {}, best: s.best || 0};
+    }catch(e){ return {days:{}, best:0}; }
+  }
+
+  let S = loadStats();
+  let mins = 25;
+  let end = 0;
+  let tk = null;
+  let parked = [];
+  let finished = false;
+  let ambientOn = false;
+  let breakMode = false;
+  let audioCtx = null;
+  let noiseNodes = null;
+
+  function saveStats(){
+    localStorage.setItem('of', JSON.stringify(S));
+  }
+
+  function saveRun(){
+    if(!localStorage.getItem('ofRun')) return;
+    try{
+      const r = JSON.parse(localStorage.getItem('ofRun'));
+      r.parked = parked;
+      r.end = end;
+      r.mins = mins;
+      r.ambient = ambientOn;
+      r.breakMode = breakMode;
+      localStorage.setItem('ofRun', JSON.stringify(r));
+    }catch(e){}
+  }
+
+  function streak(){
+    let n = 0;
+    const d = new Date();
+    // If nothing finished today yet, count from yesterday so the streak display doesn't drop mid-day
+    if(!S.days[dayKey(d)]) d.setDate(d.getDate() - 1);
+    while(S.days[dayKey(d)]){
+      n++;
+      d.setDate(d.getDate() - 1);
+    }
+    return n;
+  }
+
+  function weekDotsHTML(){
+    let h = '';
+    for(let i = 6; i >= 0; i--){
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      h += '<i class="' + (S.days[dayKey(d)] ? 'on' : '') + '"></i>';
+    }
+    return h;
+  }
+
+  function draw(){
+    const n = streak();
+    const today = S.days[dayKey(new Date())] || 0;
+    let h;
+    if(n){
+      h = '🔥 ' + n + '-day streak';
+      h += today ? (' · ' + today + ' today') : ' · finish one today to keep it';
+    } else {
+      h = 'No streak yet';
+    }
+    h += '<div class="dots">' + weekDotsHTML() + '</div>';
+    $('sk').innerHTML = h;
+    $('coach').textContent = n ? '' : 'One locked session starts the streak.';
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function syncStart(){
+    $('start').disabled = !$('task').value.trim();
+  }
+
+  $('task').addEventListener('input', syncStart);
+  $('task').addEventListener('change', syncStart);
+  $('task').addEventListener('keyup', syncStart);
+  $('task').addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !$('start').disabled){
+      e.preventDefault();
+      $('start').click();
+    }
+  });
+
+  $('durs').addEventListener('click', function(e){
+    const btn = e.target.closest('button[data-m]');
+    if(!btn) return;
+    mins = +btn.dataset.m;
+    Array.prototype.forEach.call($('durs').querySelectorAll('button'), function(b){
+      b.classList.toggle('on', b === btn);
+    });
+  });
+
+  function ensureAudio(){
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      audioCtx = new AC();
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  // Soft two-tone completion chime
+  function playDoneChime(){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    const now = ctx.currentTime;
+    [[523.25, 0], [659.25, 0.18]].forEach(function(pair){
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = pair[0];
+      g.gain.setValueAtTime(0.0001, now + pair[1]);
+      g.gain.exponentialRampToValueAtTime(0.12, now + pair[1] + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + pair[1] + 0.55);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(now + pair[1]);
+      osc.stop(now + pair[1] + 0.6);
+    });
+  }
+
+  function startAmbient(){
+    const ctx = ensureAudio();
+    if(!ctx || noiseNodes) return;
+    const bufferSize = 2 * ctx.sampleRate;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let last = 0;
+    for(let i = 0; i < bufferSize; i++){
+      // Brown-ish noise (soft)
+      const white = Math.random() * 2 - 1;
+      last = (last + 0.02 * white) / 1.02;
+      data[i] = last * 3.5;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
+    const g = ctx.createGain();
+    g.gain.value = 0.035;
+    src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+    src.start();
+    noiseNodes = {src: src, g: g, filter: filter};
+  }
+
+  function stopAmbient(){
+    if(!noiseNodes) return;
+    try{ noiseNodes.src.stop(); }catch(e){}
+    try{ noiseNodes.src.disconnect(); noiseNodes.g.disconnect(); noiseNodes.filter.disconnect(); }catch(e){}
+    noiseNodes = null;
+  }
+
+  function setAmbient(on){
+    ambientOn = !!on;
+    $('ambient').classList.toggle('on', ambientOn);
+    $('ambient').setAttribute('aria-pressed', ambientOn ? 'true' : 'false');
+    $('ambient').textContent = ambientOn ? 'Stay with me · on' : 'Stay with me';
+    if(ambientOn) startAmbient(); else stopAmbient();
+    saveRun();
+  }
+
+  $('ambient').addEventListener('click', function(){
+    setAmbient(!ambientOn);
+  });
+
+  $('start').addEventListener('click', function(){
+    const t = $('task').value.trim();
+    if(!t) return;
+    finished = false;
+    breakMode = false;
+    parked = [];
+    end = Date.now() + mins * 60000;
+    localStorage.setItem('ofRun', JSON.stringify({
+      t: t, end: end, mins: mins, parked: [], ambient: false, breakMode: false
+    }));
+    setAmbient(false);
+    go();
+  });
+
+  function go(){
+    let r;
+    try{ r = JSON.parse(localStorage.getItem('ofRun')); }catch(e){ return; }
+    if(!r || !r.t) return;
+    finished = false;
+    parked = Array.isArray(r.parked) ? r.parked.slice() : [];
+    end = r.end;
+    mins = r.mins || 25;
+    breakMode = !!r.breakMode;
+    $('tname').textContent = breakMode ? 'Break' : r.t;
+    document.title = (breakMode ? '☕ ' : '🔒 ') + (breakMode ? 'Break' : r.t);
+    $('setup').classList.add('hide');
+    $('run').classList.remove('hide');
+    $('m1').classList.add('hide');
+    $('m2').classList.add('hide');
+    $('capn').textContent = parked.length
+      ? (parked.length + ' parked · back to work')
+      : 'Press / anywhere to park a thought';
+    $('ring').classList.toggle('running', !reduceMotion);
+    $('arc').setAttribute('stroke-dasharray', String(CIRC));
+    if(r.ambient) setAmbient(true); else setAmbient(false);
+    if(tk) clearInterval(tk);
+    tick();
+    tk = setInterval(tick, 250);
+  }
+
+  function tick(){
+    const left = Math.max(0, end - Date.now());
+    const s = Math.ceil(left / 1000);
+    const mm = Math.floor(s / 60);
+    const ss = String(s % 60).padStart(2, '0');
+    $('time').textContent = mm + ':' + ss;
+    const total = (mins || 1) * 60000;
+    const offset = CIRC * (1 - left / total);
+    $('arc').style.strokeDashoffset = String(offset);
+    if(left <= 0) done();
+  }
+
+  function stopRun(clearStorage){
+    if(tk){ clearInterval(tk); tk = null; }
+    stopAmbient();
+    ambientOn = false;
+    $('ring').classList.remove('running');
+    if(clearStorage) localStorage.removeItem('ofRun');
+    document.title = 'One Focus — one task, nothing else';
+    $('run').classList.add('hide');
+    $('setup').classList.remove('hide');
+    $('task').value = '';
+    syncStart();
+  }
+
+  function done(){
+    if(finished) return;
+    finished = true;
+    if(tk){ clearInterval(tk); tk = null; }
+
+    const wasBreak = breakMode;
+    const taskName = $('tname').textContent;
+    const parkedCopy = parked.slice();
+
+    stopAmbient();
+    ambientOn = false;
+    $('ring').classList.remove('running');
+    localStorage.removeItem('ofRun');
+    document.title = 'One Focus — one task, nothing else';
+    $('run').classList.add('hide');
+
+    if(!wasBreak){
+      const k = dayKey(new Date());
+      S.days[k] = (S.days[k] || 0) + 1;
+      const n = streak();
+      S.best = Math.max(S.best || 0, n);
+      saveStats();
+      draw();
+      playDoneChime();
+
+      $('dtitle').textContent = '“' + taskName + '” — done.';
+      $('dstreak').textContent = '🔥 ' + n + '-day streak · best ' + S.best;
+      $('ddots').innerHTML = weekDotsHTML();
+      if(parkedCopy.length){
+        $('parked').innerHTML = '<b>Parked while you focused:</b><br>' +
+          parkedCopy.map(function(p){ return '· ' + escapeHtml(p); }).join('<br>');
+      } else {
+        $('parked').textContent = 'Zero distractions. Clean session.';
+      }
+      $('breakbtn').classList.remove('hide');
+      $('breakbtn').disabled = false;
+      $('breakbtn').textContent = '5-min break';
+      $('breaknote').classList.add('hide');
+      $('breaknote').textContent = '';
+    } else {
+      draw();
+      $('dtitle').textContent = 'Break over.';
+      $('dstreak').textContent = 'Ready when you are.';
+      $('ddots').innerHTML = weekDotsHTML();
+      $('parked').textContent = 'Lock into the next one thing.';
+      $('breakbtn').classList.add('hide');
+      $('breaknote').classList.add('hide');
+    }
+
+    breakMode = false;
+    parked = [];
+    $('setup').classList.add('hide');
+    $('m2').classList.remove('hide');
+  }
+
+  $('cap').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      const v = e.target.value.trim();
+      if(!v) return;
+      parked.push(v);
+      e.target.value = '';
+      $('capn').textContent = parked.length + ' parked · back to work';
+      saveRun();
+      e.target.blur();
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === '/' && !$('run').classList.contains('hide') && document.activeElement !== $('cap')){
+      e.preventDefault();
+      $('cap').focus();
+    }
+  });
+
+  $('quit').addEventListener('click', function(){
+    $('conf').value = '';
+    $('conf').style.borderColor = '';
+    $('m1').classList.remove('hide');
+    $('conf').focus();
+  });
+
+  $('back').addEventListener('click', function(){
+    $('m1').classList.add('hide');
+  });
+
+  $('really').addEventListener('click', function(){
+    if($('conf').value.trim().toLowerCase() === 'i give up on this'){
+      $('m1').classList.add('hide');
+      finished = true;
+      stopRun(true);
+      draw();
+      $('task').focus();
+    } else {
+      $('conf').style.borderColor = 'var(--danger)';
+    }
+  });
+
+  $('again').addEventListener('click', function(){
+    $('m2').classList.add('hide');
+    $('setup').classList.remove('hide');
+    $('task').value = '';
+    syncStart();
+    $('task').focus();
+  });
+
+  $('breakbtn').addEventListener('click', function(){
+    $('m2').classList.add('hide');
+    finished = false;
+    breakMode = true;
+    parked = [];
+    mins = 5;
+    end = Date.now() + 5 * 60000;
+    localStorage.setItem('ofRun', JSON.stringify({
+      t: 'Break', end: end, mins: 5, parked: [], ambient: false, breakMode: true
+    }));
+    setAmbient(false);
+    go();
+  });
+
+  window.addEventListener('beforeunload', function(e){
+    if(localStorage.getItem('ofRun') && !finished){
+      saveRun();
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  document.addEventListener('visibilitychange', function(){
+    if(!localStorage.getItem('ofRun')) return;
+    if(document.hidden){
+      document.title = '⚠ Come back: ' + $('tname').textContent;
+      saveRun();
+    } else {
+      document.title = (breakMode ? '☕ ' : '🔒 ') + $('tname').textContent;
+    }
+  });
+
+  // Init
+  $('arc').setAttribute('stroke-dasharray', String(CIRC));
+  draw();
+  syncStart();
+  if(localStorage.getItem('ofRun')){
+    go();
+  } else {
+    // Ensure modals stay hidden on fresh load
+    $('m1').classList.add('hide');
+    $('m2').classList.add('hide');
+  }
+})();
+</script>
+</body>
+</html>
